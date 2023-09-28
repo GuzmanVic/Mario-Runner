@@ -44,10 +44,10 @@ public class GameView extends SurfaceView {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
 //                bloque = BitmapFactory.decodeResource(getResources(), R.drawable.bloque2);
-                marios[0] = new Sprite(context, R.drawable.mario1,10,710);
-                marios[1] = new Sprite(context, R.drawable.mario2,10,710);
-                marios[2] = new Sprite(context, R.drawable.mario3,10,710);
-                marios[3] = new Sprite(context, R.drawable.mario2,10,710);
+                marios[0] = new Sprite(context, R.drawable.mario1, 10, 710);
+                marios[1] = new Sprite(context, R.drawable.mario2, 10, 710);
+                marios[2] = new Sprite(context, R.drawable.mario3, 10, 710);
+                marios[3] = new Sprite(context, R.drawable.mario2, 10, 710);
                 bloque = new Sprite(context, R.drawable.bloque2, 0, 0, 32, 32);
                 gameLoopThread.setRunning(true);
                 gameLoopThread.start();
@@ -68,14 +68,17 @@ public class GameView extends SurfaceView {
             canvas.drawBitmap(bloque.getBmp(), x + bloque.w * i, 894, null);
         }
         mario = marios[tiempo % 4];
-
         canvas.drawBitmap(mario.getBmp(), mario.getX(), mario.getY() + y + vely, null);
         if (saltando) {
             vely += acel;
-            y -= vely;
+            y += vely;
+            acel -= 5;
         }
-        if (vely > 400) {
-            vely -= acel;
+        if (y < 0) {
+            saltando = false;
+            y = 0;
+            vely = 0;
+            acel = 25;
         }
         tiempo++;
         x -= velx;
@@ -99,7 +102,8 @@ public class GameView extends SurfaceView {
   */
         return true;
     }
-//MI METODO DE SALTO
+
+    //MI METODO DE SALTO
     private void jump() {
         isJumping = true;
 
