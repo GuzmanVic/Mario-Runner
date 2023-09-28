@@ -12,12 +12,14 @@ import android.view.SurfaceView;
 public class GameView extends SurfaceView {
     private final SurfaceHolder holder;
     private final GameThread gameLoopThread;
-    private final Bitmap marios[] = new Bitmap[4];
-    private Bitmap bloque;
+    private final Sprite marios[] = new Sprite[4];
+    private Sprite bloque;
     private final double scale = 1.75;
-    private int tiempo = 0;
+    private int tiempo = 0, x = 0, velx = 20, vely = 20;
     private int marioY;  // posición vertical de Mario
     private boolean isJumping = false;
+    private boolean saltando = false;//verifica que mario esté en el suelo
+    int acel = 20, y = 0;
 
     public GameView(Context context) {
         super(context);
@@ -41,11 +43,12 @@ public class GameView extends SurfaceView {
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                bloque = BitmapFactory.decodeResource(getResources(), R.drawable.bloque2);
-                marios[0] = BitmapFactory.decodeResource(getResources(), R.drawable.mario1);
-                marios[1] = BitmapFactory.decodeResource(getResources(), R.drawable.mario2);
-                marios[2] = BitmapFactory.decodeResource(getResources(), R.drawable.mario3);
-                marios[3] = BitmapFactory.decodeResource(getResources(), R.drawable.mario2);
+//                bloque = BitmapFactory.decodeResource(getResources(), R.drawable.bloque2);
+                marios[0] = new Sprite(context, R.drawable.mario1,10,710);
+                marios[1] = new Sprite(context, R.drawable.mario2,10,710);
+                marios[2] = new Sprite(context, R.drawable.mario3,10,710);
+                marios[3] = new Sprite(context, R.drawable.mario2,10,710);
+                bloque = new Sprite(context, R.drawable.bloque2, 0, 0, 32, 32);
                 gameLoopThread.setRunning(true);
                 gameLoopThread.start();
             }
@@ -59,17 +62,33 @@ public class GameView extends SurfaceView {
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
+        Sprite mario;
         canvas.drawColor(Color.argb(255, 92, 148, 252));
-        for (int i = 0; i < 27; i++) {
-            canvas.drawBitmap(bloque, (int) (i * 48 * scale), 894, null);
+        for (int i = 0; i < 28; i++) {
+            canvas.drawBitmap(bloque.getBmp(), x + bloque.w * i, 894, null);
         }
-        canvas.drawBitmap(marios[tiempo % 4], 10, marioY, null);
+        mario = marios[tiempo % 4];
+
+        canvas.drawBitmap(mario.getBmp(), mario.getX(), mario.getY() + y + vely, null);
+        if (saltando) {
+            vely += acel;
+            y -= vely;
+        }
+        if (vely > 400) {
+            vely -= acel;
+        }
         tiempo++;
+        x -= velx;
+        if (x < -bloque.w) {
+            x += bloque.w;
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
+        saltando = true;
+        //MI MÉTODO DE SALTO
+/*        switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (!isJumping) {
                     jump();// Iniciar la animación de salto
@@ -77,13 +96,15 @@ public class GameView extends SurfaceView {
                 break;
         }
         return true;
+  */
+        return true;
     }
-
+//MI METODO DE SALTO
     private void jump() {
         isJumping = true;
 
-        final int jumpHeight = 400;  // Altura del salto
-        final int jumpDuration = 1000;  // Duración del salto en milisegundos
+        final int jumpHeight = 150;  // Altura del salto
+        final int jumpDuration = 100;  // Duración del salto en milisegundos
         final int framesPerSecond = 10;  // Cuadros por segundo
 
         int frames = (jumpDuration * framesPerSecond) / 1000;  // Calcular la cantidad de cuadros
