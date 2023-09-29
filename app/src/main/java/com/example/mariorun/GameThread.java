@@ -3,7 +3,7 @@ package com.example.mariorun;
 import android.graphics.Canvas;
 
 public class GameThread extends Thread {
-    static final long FPS = 10; // Establece la velocidad de cuadros por segundo (10 FPS).
+    static final long FPS = 20; // Establece la velocidad de cuadros por segundo (10 FPS).
 
     final GameView gameView; // Referencia al objeto GameView para interactuar con él desde este hilo.
     private boolean running = false; // Indica si el hilo del juego está en ejecución.

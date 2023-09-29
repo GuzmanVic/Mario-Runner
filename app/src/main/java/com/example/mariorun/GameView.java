@@ -5,27 +5,28 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class GameView extends SurfaceView {
     private final SurfaceHolder holder;
+    private MediaPlayer mediaPlayer;
     private final GameThread gameLoopThread;
-    private final Sprite marios[] = new Sprite[4];
+    private final Sprite marios[] = new Sprite[5];
     private Sprite bloque;
-    private final double scale = 1.75;
+    private Sprite tubos[] = new Sprite[3];
     private int tiempo = 0, x = 0, velx = 20, vely = 20;
     private int marioY;  // posición vertical de Mario
-    private boolean isJumping = false;
     private boolean saltando = false;//verifica que mario esté en el suelo
-    int acel = 20, y = 0;
-
+    int acel = 23, y = 0;
     public GameView(Context context) {
         super(context);
         gameLoopThread = new GameThread(this);
         holder = getHolder();
         marioY = 726;  // Inicializar la posición vertical de Mario
+        mediaPlayer = MediaPlayer.create(context, R.raw.jump);
         holder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
@@ -44,10 +45,15 @@ public class GameView extends SurfaceView {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
 //                bloque = BitmapFactory.decodeResource(getResources(), R.drawable.bloque2);
-                marios[0] = new Sprite(context, R.drawable.mario1, 10, 710);
-                marios[1] = new Sprite(context, R.drawable.mario2, 10, 710);
-                marios[2] = new Sprite(context, R.drawable.mario3, 10, 710);
-                marios[3] = new Sprite(context, R.drawable.mario2, 10, 710);
+                marios[0] = new Sprite(context, R.drawable.mario1, 10, 727);
+                marios[1] = new Sprite(context, R.drawable.mario2, 10, 727);
+                marios[2] = new Sprite(context, R.drawable.mario3, 10, 727);
+                marios[3] = new Sprite(context, R.drawable.mario2, 10, 727);
+                marios[4] = new Sprite(context, R.drawable.mario4, 10, 727);
+
+                tubos[0] = new Sprite(context, R.drawable.tubo1, 1000, 0, 64, 64);
+                tubos[1] = new Sprite(context, R.drawable.tubo2, 1000, 0, 64, 96);
+                tubos[2] = new Sprite(context, R.drawable.tubo3, 1000, 0, 64, 120);
                 bloque = new Sprite(context, R.drawable.bloque2, 0, 0, 32, 32);
                 gameLoopThread.setRunning(true);
                 gameLoopThread.start();
@@ -63,23 +69,31 @@ public class GameView extends SurfaceView {
     public void draw(Canvas canvas) {
         super.draw(canvas);
         Sprite mario;
+        Sprite enem1=tubos[0], enem2, enem3;
         canvas.drawColor(Color.argb(255, 92, 148, 252));
         for (int i = 0; i < 28; i++) {
             canvas.drawBitmap(bloque.getBmp(), x + bloque.w * i, 894, null);
         }
-        mario = marios[tiempo % 4];
-        canvas.drawBitmap(mario.getBmp(), mario.getX(), mario.getY() + y + vely, null);
         if (saltando) {
             vely += acel;
             y += vely;
             acel -= 5;
+
+            if (y <= 0) {
+                saltando = false;
+                y = 0;
+                vely = 0;
+                acel = 26;
+            }
+            mario = marios[4];
+        } else {
+            mario = marios[tiempo % 4];
         }
-        if (y < 0) {
-            saltando = false;
-            y = 0;
-            vely = 0;
-            acel = 25;
-        }
+        canvas.drawBitmap(mario.getBmp(), 100+mario.getX(), mario.getY() - y, null);
+        canvas.drawBitmap(enem1.getBmp(), enem1.getX(), 897-enem1.h, null);
+        enem1.setX(enem1.getX()-velx);
+        if (enem1.getX()<0-enem1.w)
+            enem1.setX(2215);
         tiempo++;
         x -= velx;
         if (x < -bloque.w) {
@@ -90,50 +104,9 @@ public class GameView extends SurfaceView {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         saltando = true;
-        //MI MÉTODO DE SALTO
-/*        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                if (!isJumping) {
-                    jump();// Iniciar la animación de salto
-                }
-                break;
-        }
-        return true;
-  */
+        mediaPlayer.start();
         return true;
     }
 
-    //MI METODO DE SALTO
-    private void jump() {
-        isJumping = true;
 
-        final int jumpHeight = 150;  // Altura del salto
-        final int jumpDuration = 100;  // Duración del salto en milisegundos
-        final int framesPerSecond = 10;  // Cuadros por segundo
-
-        int frames = (jumpDuration * framesPerSecond) / 1000;  // Calcular la cantidad de cuadros
-        int jumpDistance = jumpHeight / frames;  // Calcular la distancia vertical por cuadro
-        for (int i = 0; i < frames; i++) {
-            marioY -= jumpDistance;  // Cambiar la posición vertical de Mario
-            postInvalidate();  // Actualizar la vista
-            try {
-                Thread.sleep(1000 / framesPerSecond);  // Esperar para controlar la velocidad de la animación
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        for (int i = 0; i < frames; i++) {
-            marioY -= jumpDistance;  // Cambiar la posición vertical de Mario
-            postInvalidate();  // Actualizar la vista
-            try {
-                Thread.sleep(1000 / framesPerSecond);  // Esperar para controlar la velocidad de la animación
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        // Asegurarse de que Mario esté en la posición inicial después del salto
-        marioY = 726;
-        postInvalidate();//Actualizar nuevamente
-        isJumping = false;//Declarar que ya no está saltando
-    }
 }
