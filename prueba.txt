@@ -1,0 +1,127 @@
+package com.example.mariorunner;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+
+public class GameView extends SurfaceView {
+    final SurfaceHolder holder;
+    final GameThread gameLoopThread;
+    private Sprite bloque;
+    private Sprite marios[] = new Sprite[5];
+    private Sprite tubos[] = new Sprite[3];
+
+    private int tiempo = 0, x=0, velx=30, vely=0, acel=25, y=0;
+    private boolean salto = false;
+
+    public GameView(Context context) {
+        super(context);
+        gameLoopThread = new GameThread(this);
+        holder = getHolder();
+        holder.addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                boolean retry = true;
+                gameLoopThread.setRunning(false);
+                while (retry) {
+                    try {
+                        gameLoopThread.join();
+                        retry = false;
+                    } catch (InterruptedException e) {
+
+                    }
+                }
+            }
+
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                marios[0] = new Sprite(context, R.drawable.mario1, 10, 620, 32, 64);
+                marios[1] = new Sprite(context, R.drawable.mario2, 10, 620, 32, 64);
+                marios[2] = new Sprite(context, R.drawable.mario3, 10, 620, 32, 64);
+                marios[3] = new Sprite(context, R.drawable.mario2, 10, 620, 32, 64);
+                marios[4] = new Sprite(context, R.drawable.mario4, 10, 620, 32, 64);
+
+                tubos[0] = new Sprite(context, R.drawable.tubo1, 1000, 0, 64, 64);
+                tubos[1] = new Sprite(context, R.drawable.tubo2, 1000, 0, 64, 96);
+                tubos[2] = new Sprite(context, R.drawable.tubo3, 1000, 0, 64, 128);
+
+                bloque = new Sprite(context, R.drawable.bloque2, 0, 0, 32, 32);
+
+                gameLoopThread.setRunning(true);
+                gameLoopThread.start();
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+            }
+        });
+    }
+
+    @Override
+    public void draw(Canvas canvas) {
+        Paint p1 = new Paint(Color.WHITE);
+        super.draw(canvas);
+        Sprite mario;
+        Sprite enem1 = tubos[0];
+        canvas.drawColor(Color.argb(255, 92, 148, 252));
+        for(int i=0; i<26; i++) {
+            canvas.drawBitmap(bloque.getBmp(), x + bloque.w * i, 800, null);
+        }
+
+        if(salto){
+            vely += acel;
+            y += vely;
+            acel -= 5;
+            if(y<=0) {
+                salto = false;
+                y = 0;
+                vely = 0;
+                acel = 25;
+            }
+            mario = marios[4];
+        } else {
+            mario = marios[tiempo % 4];
+        }
+        mario.setY(mario.getY()-y);
+        enem1.setY(800-enem1.h);
+
+        canvas.drawBitmap(mario.getBmp(), mario.getX(), mario.getY(), null);
+        canvas.drawBitmap(enem1.getBmp(), enem1.getX(), enem1.getY(), null);
+        //canvas.drawText("Colision: "+Colision(mario, enem1), 500, 500, p1);
+        if(Colision(mario, enem1))
+            gameLoopThread.setRunning(false);
+
+
+        enem1.setX(enem1.getX()-velx);
+
+        if(enem1.getX()<0-enem1.w)
+            enem1.setX(2000);
+
+        tiempo++;
+
+
+        x-=velx;
+
+        if(x<-bloque.w) {
+            x += bloque.w;
+        }
+    }
+
+    public boolean Colision(Sprite s1, Sprite s2){
+        boolean b;
+        b = s1.getX() > (s2.getX()-s1.w);
+        /*b = b && s1.getY() > s2.getY()-s1.h;
+        b = b && s1.getX() < s2.getX() + s1.w;
+        b = b && s1.getY() < s2.getY() + s1.h;*/
+        return b;
+    }
+
+    public boolean onTouchEvent(MotionEvent event){
+        salto = true;
+        return true;
+    }
+}
