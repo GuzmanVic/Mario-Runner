@@ -21,6 +21,7 @@ public class GameView extends SurfaceView {
     private int marioY;  // posición vertical de Mario
     private boolean saltando = false;//verifica que mario esté en el suelo
     int acel = 23, y = 0;
+
     public GameView(Context context) {
         super(context);
         gameLoopThread = new GameThread(this);
@@ -45,11 +46,11 @@ public class GameView extends SurfaceView {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
 //                bloque = BitmapFactory.decodeResource(getResources(), R.drawable.bloque2);
-                marios[0] = new Sprite(context, R.drawable.mario1, 10, 727);
-                marios[1] = new Sprite(context, R.drawable.mario2, 10, 727);
-                marios[2] = new Sprite(context, R.drawable.mario3, 10, 727);
-                marios[3] = new Sprite(context, R.drawable.mario2, 10, 727);
-                marios[4] = new Sprite(context, R.drawable.mario4, 10, 727);
+                marios[0] = new Sprite(context, R.drawable.mario1, 10, 727,32,64);
+                marios[1] = new Sprite(context, R.drawable.mario2, 10, 727,32,64);
+                marios[2] = new Sprite(context, R.drawable.mario3, 10, 727,32,64);
+                marios[3] = new Sprite(context, R.drawable.mario2, 10, 727,32,64);
+                marios[4] = new Sprite(context, R.drawable.mario4, 10, 727,32,64);
 
                 tubos[0] = new Sprite(context, R.drawable.tubo1, 1000, 0, 64, 64);
                 tubos[1] = new Sprite(context, R.drawable.tubo2, 1000, 0, 64, 96);
@@ -69,7 +70,7 @@ public class GameView extends SurfaceView {
     public void draw(Canvas canvas) {
         super.draw(canvas);
         Sprite mario;
-        Sprite enem1=tubos[0], enem2, enem3;
+        Sprite enem1 = tubos[0], enem2, enem3;
         canvas.drawColor(Color.argb(255, 92, 148, 252));
         for (int i = 0; i < 28; i++) {
             canvas.drawBitmap(bloque.getBmp(), x + bloque.w * i, 894, null);
@@ -89,16 +90,48 @@ public class GameView extends SurfaceView {
         } else {
             mario = marios[tiempo % 4];
         }
-        canvas.drawBitmap(mario.getBmp(), 100+mario.getX(), mario.getY() - y, null);
-        canvas.drawBitmap(enem1.getBmp(), enem1.getX(), 897-enem1.h, null);
-        enem1.setX(enem1.getX()-velx);
-        if (enem1.getX()<0-enem1.w)
-            enem1.setX(2215);
+        mario.setY(mario.getY() - y);
+        enem1.setY(800 - enem1.h);
+        canvas.drawBitmap(mario.getBmp(), mario.getX(), mario.getY(), null);
+        canvas.drawBitmap(enem1.getBmp(), enem1.getX(), enem1.getY(), null);
+        //canvas.drawText("Colision: "+Colision(mario, enem1), 500, 500, p1);
+        enem1.setX(enem1.getX() - velx);
+        if (Colision(mario, enem1))
+            gameLoopThread.setRunning(false);
+
+
+        enem1.setX(enem1.getX() - velx);
+
         tiempo++;
         x -= velx;
         if (x < -bloque.w) {
             x += bloque.w;
         }
+        if (Colision(mario, enem1))
+            gameLoopThread.setRunning(false);
+
+
+        enem1.setX(enem1.getX() - velx);
+
+        if (enem1.getX() < 0 - enem1.w)
+            enem1.setX(2000);
+
+        tiempo++;
+
+
+        x -= velx;
+
+        if (x < -bloque.w) {
+            x += bloque.w;
+        }
+    }
+
+    public boolean Colision(Sprite s1, Sprite s2) {
+        boolean b = (s1.getX() > s2.getX() - s1.w);
+        b = b && s1.getY() > s2.getY() - s1.h;
+        b = b && s1.getX() < s2.getX() + s1.w;
+        b = b && s1.getY() < s2.getY() + s2.h;
+        return b;
     }
 
     @Override
