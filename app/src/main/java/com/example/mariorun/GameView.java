@@ -73,8 +73,9 @@ public class GameView extends SurfaceView {
                 tubos[0] = new Sprite(context, R.drawable.tubo1, aleatorio, 0, 64, 64);
                 tubos[1] = new Sprite(context, R.drawable.tubo2, aleatorio1, 0, 64, 96);
                 tubos[2] = new Sprite(context, R.drawable.tubo3, aleatorio2, 0, 64, 128);
-                pisoMario = marios[0].getY();
                 bloque = new Sprite(context, R.drawable.bloque2, 0, 0, 32, 32);
+                
+                pisoMario = marios[0].getY();
                 gameLoopThread.setRunning(true);
                 gameLoopThread.start();
                 musicThread.resumeMusic();
@@ -104,8 +105,6 @@ public class GameView extends SurfaceView {
 
     @Override
     public void draw(Canvas canvas) {
-
-
         Paint p1 = new Paint(Color.BLACK);
         super.draw(canvas);
         Sprite mario;
@@ -115,14 +114,6 @@ public class GameView extends SurfaceView {
         p1.setTextSize(60);
         aumentarX();
         canvas.drawColor(Color.argb(255, 92, 148, 252));
-        if (enem2.getX() < 0 - enem2.w) {
-            aleatorio1 = random.nextInt(maxX - 2000) + 2000;
-            enem2.setX(aleatorio1); // Corrección: asigna "aleatorio1" a la posición de enem2
-        }
-        if (enem3.getX() < 0 - enem3.w) {
-            aleatorio2 = random.nextInt(maxX - 2000) + 2000;
-            enem3.setX(aleatorio2); // Corrección: asigna "aleatorio2" a la posición de enem3
-        }
         for (int i = 0; i < 28; i++) {
             canvas.drawBitmap(bloque.getBmp(), x + bloque.w * i, 809, null);
             canvas.drawBitmap(bloque.getBmp(), x + bloque.w * i, 808 + bloque.h, null);
